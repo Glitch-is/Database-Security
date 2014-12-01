@@ -1,0 +1,170 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Injection 2</title>
+    <link rel="stylesheet" href="../css/foundation.css" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/animate.css">
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.css" />
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.ttf" />
+    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:900' rel='stylesheet' type='text/css'>
+    <script src="../js/vendor/modernizr.js"></script>
+  </head>
+  <body>
+
+    <div class="row">
+        <div style="padding:4rem;" class="large-10 large-centered columns">
+            <center>
+                <h1 class="glow">Injection 2</h1>
+            </center>
+            <hr/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="vuln" class="glowbutt large prefix radius button">
+                Vulnerable Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div  class="large-10 large-centered columns">
+            <center>
+                <h2>Description</h2>
+                <p>
+                    Similar to the previous problem we got a login system but they've updated their login script to check the password in the PHP login script.
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Problem</h2>
+            </center>
+
+            <p>
+                After inspecting the given login script we can see that it has changed from the last time. They are no longer doing their credential checking in SQL, rather in PHP. We need to somehow inject our own columns into the query so when the PHP script tries to check the password it checks against the password we provided in the query.
+            </p>
+            <p>
+                We can perform this with the <a href="http://www.w3schools.com/sql/sql_union.asp">UNION</a> operator in SQL. With some experimentation and having the debug enabled we can slowly manoeuvre ourselves closer to logging in. By sending the following in the username field:
+            </p>
+            <div class="large-12 panel code columns">
+                ' UNION SELECT 0 ;#
+            </div>
+
+            <p>
+                We get the following Error:
+            </p>
+            <div class="large-12 panel code columns">
+                The used SELECT statements have a different number of columns
+            </div>
+
+            <p>
+            So we need to find out how many columns the 'users' table has so we can match it with the UNION. You can do that with brute force just by adding more and more columns to your UNION's SELECT until you stop getting the error:
+            </p>
+
+            <div class="large-12 panel code columns">
+            ' UNION SELECT 0, 0, 0, 0, 0 ;#
+            </div>
+
+            <p>
+            Five seems to be the magic number. Now we need to figure out what each of these columns are and try and map out their table as best as we can.
+            </p>
+            <div class="large-12 panel code columns">
+                _______________________________<br/>| ??? | ??? | ??? | ??? | ??? |<br/> ===============================
+            </div>
+
+            <p>
+                First we try and identify the password column since if you look at the login script it will just tell us when we have the correct password and say we are logged in. By putting the following into the username field we can fairly easily identify the password field:
+            </p>
+
+            <div class="large-12 panel code columns">
+                ' UNION SELECT 1, 2, 3, 4, 5 ;#
+            </div>
+
+            <p>
+            Now if we try putting 1 up to 5 into the password field we will see that we'll be logged in when we get to 3. That means the 3rd column is our password column. And our table looks like this now:
+            </p>
+
+            <div class="large-12 panel code columns">
+                ____________________________________<br/>| ??? | ??? | password | ??? | ??? |<br/>====================================
+            </div>
+
+            <p>
+            Now that we're logged in we can see that we need to be "Level 1337" to get further. Now we need find out what column is the level column. They tell us what our current level is and they say that we're level 5. What does that mean? Well, remeber when we numbered our columns? That means that the level field is the 5th column:
+            </p>
+
+            <div class="large-12 panel code columns">
+                ______________________________________<br/>| ??? | ??? | password | ??? | level |<br/>======================================
+            </div>
+
+            <p>
+                Now we have everything we need to get through, but if we'd want to finish our table layout we can make an educated guess that it would look something like this:
+            </p>
+
+            <div class="large-12 panel code columns">
+                _____________________________________________<br/>| ID | username | password | email? | level |<br/>=============================================
+            </div>
+
+            <p>
+                To finish it up we enter the following in the username field and keep 3 in the password field:
+            </p>
+            <div class="large-12 panel code columns">
+                ' UNION SELECT 0, '', 3, '', 1337 #;
+            </div>
+
+            <p>
+                Seeing as the login script doesn't check any usernames and ID's we can just leave them blank. Our final SQL query will end up looking something like this:
+            </p>
+            <div class="large-12 panel code columns">
+                SELECT * FROM users WHERE username='' UNION SELECT 0, '', 3, '', 1337 #;'
+            </div>
+            <p>
+            <b>PWNZ0RD 1N D4 PH453!!!1</b>
+            </p>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Fix</h2>
+                <p>
+                    Pfft.. How am I suppose to know?! Procedures or some'?
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="secure" class="glowbutt large prefix radius button">
+                Secure Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="foot center-container">
+        <div class="center">
+            <div class="row">
+                <small>Copyright © 2014 The Glitch Network</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/vendor/jquery.js"></script>
+    <script src="../js/foundation.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>

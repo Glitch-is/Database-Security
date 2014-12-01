@@ -1,0 +1,152 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Database Security</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/animate.css">
+    <link rel="stylesheet" href="css/foundation-icons/foundation-icons.css" />
+    <link rel="stylesheet" href="css/foundation-icons/foundation-icons.ttf" />
+    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <script src="js/vendor/modernizr.js"></script>
+  </head>
+  <body>
+
+    <div class="panel pan1 center-container">
+        <div class="center">
+                <h1 class="animated logo flipInY centered">
+                    The Bobby Tables Project
+                </h1>
+            <hr class="animated fadeInUp">
+            <div class="row">
+                <h3 class="animated fadeIn">
+                    SQL Injection Documentation and Examples
+                </h3>
+            </div>
+            <div class="row">
+                <div class="arrow">
+                    <a href="#intro" id="arro" class="fi-arrow-down arr"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row names">
+        <div id="names" class="large-11 small-12 large-centered columns">
+            <div class="large-6 columns">
+                <center>
+                <h3 class="animated zoomInLeft">
+                    Hlynur Óskar Guðmundsson
+                </h3>
+                </center>
+            </div>
+            <div class="large-6 columns">
+                <center>
+                <h3 class="animated zoomInRight">
+                    Arnar Páll Jóhannsson
+                </h3>
+                </center>
+            </div>
+        </div>
+    </div>
+
+    <div class="center pan3" id="intro">
+        <div class="large-7 small-12 large-centered columns">
+            <center>
+                <h1 class="glow">Introduction</h1>
+            </center>
+            <p>Database Security is something almost every computer scientist needs to worry about because databases are used so vastly in computer science today. This project will aim towards exposing these threats on specifically MySQL Databases and then preceed by fixing said vulnerablities one at a time. We've divded this project up into 4 sections, each section focuses on different kinds of SQL Injection attacks and tries to document each step of the way to both breaking into the database and then fixing it.</p>
+            <p>This project came to be after I found a serious lack of easily approachable Database Security Documentation and Examples online. This project tries to combat that lack.</p>
+            <p>Each section contains interactive examples so the reader can apply what he learned on a real-world example immedietly. These examples have been collected from numerous hacking contests like <a href="http://www.ymsir.com/hacking">Reykjavik University Hacking Contest</a> and <a href="https://picoctf.com/">PicoCTF</a>. All the documentation to these examples are done solely by us the authors of The Bobby Tables Project</p>
+        </div>
+    </div>
+
+    <div class="center disclaim">
+        <div class="large-7 small-12 large-centered columns">
+            <center>
+                <h1>Disclaimer</h1>
+            </center>
+            <p>This project is meant as a demonstration for educational purposes <b>ONLY</b> and should thus never be abused in a real-world setting. The Technical College of Iceland is in no way responsible for this project and does <b>NOT</b> condone breaking into databases in any shape or form.</p>
+            <small class="error">Don't sue me</small>
+        </div>
+    </div>
+
+    <div class="center pan3" data-equalizer>
+        <div class="large-7 small-12 large-centered columns">
+            <center>
+                <h1 class="glow">Examples</h1>
+            </center>
+        </div>
+        <div class="large-8 large-centered columns">
+                <div class="large-3 inpad columns">
+                    <div class="panel exp-pan">
+                        <a href="injection1" class="glowbutt large prefix button radius">
+                            Injection 1
+                        </a>
+                        <p>This is the first section and serves as an introduction  to SQL injections and demonstrates the most common form of SQL based attacks</p>
+                    </div>
+                </div>
+                <div class="large-3 inpad columns">
+                    <div class="panel exp-pan">
+                        <a href="injection2" class="glowbutt large prefix button radius">
+                            Injection 2
+                        </a>
+                        <p>This second section goes a little deeper into SQL Injection and requires to analyze the target database and it's tables</p>
+                    </div>
+                </div>
+                <div class="large-3 inpad columns">
+                    <div class="panel exp-pan">
+                        <a href="injection3" class="glowbutt large prefix button radius">
+                            Injection 3
+                        </a>
+                        <p>This section will demonstrate how to bypass MySQL's attempt to sanitize the user input</p>
+                    </div>
+                </div>
+                <div class="large-3 inpad columns">
+                    <div class="panel exp-pan">
+                        <a href="injection4" class="glowbutt large prefix button radius">
+                            Injection 4
+                        </a>
+                        <p>This section will demonstrate how you can not only bypass a login system but how to extract a user's password through SQL queries</p>
+                    </div>
+                </div>
+        </div>
+
+    </div>
+
+    <div class="center pan3" data-equalizer>
+        <div class="large-7 small-12 large-centered columns">
+            <center>
+                <h1 class="glow">FAQ</h1>
+            </center>
+        </div>
+        <div class="row">
+            <h4 class="glow quest">1. Why The Bobby Tables Project?</h4>
+            <p class="panel">
+                It's a reference to a <a href="http://xkcd.com/327/">XKCD</a> comic shown bellow
+                <center>
+                    <img src="img/exploits_of_a_mom.png"/>
+                </center>
+            </p>
+            <hr>
+        </div>
+    </div>
+
+    <div class="foot center-container">
+        <div class="center">
+            <div class="row">
+                <small>Copyright © 2014 The Glitch Network</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>

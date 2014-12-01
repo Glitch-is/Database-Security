@@ -1,0 +1,226 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Injection 3</title>
+    <link rel="stylesheet" href="../css/foundation.css" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/animate.css">
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.css" />
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.ttf" />
+    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:900' rel='stylesheet' type='text/css'>
+    <script src="../js/vendor/modernizr.js"></script>
+  </head>
+  <body>
+
+    <div class="row">
+        <div style="padding:4rem;" class="large-10 large-centered columns">
+            <center>
+                <h1 class="glow">Injection 3</h1>
+            </center>
+            <hr/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="vuln" class="glowbutt large prefix radius button">
+                Vulnerable Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div  class="large-10 large-centered columns">
+            <center>
+                <h2>Description</h2>
+                <p>
+                    We have this login system that has a post from the administrator saying that they got hacked and they've fixed it. but can we get in yet again?
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Problem</h2>
+            </center>
+
+            <p>
+                If we analyze the new php login script we can see that to our knowledge there is no way of SQL injecting this new login page. All the user input is escaped so any attempt of ours by adding quotes will be thwarted.
+            </p>
+            <p>
+                but fear not because if you click on the admin's name you get directed to a lookup script where the user information is displayed.
+            </p>
+            <p>
+                If we inspect that script we can see that they try and escape the id but what they don't realize is they forgot to put the quotes around the ID since it's a number. So we don't have to add a ' to be able to inject our own code, so let's get at it!
+            </p>
+            <p>
+                We need to somehow extract the admin's password from this lookup script, but let's start by reconstructing this table so we know what we're working with.
+            </p>
+            <p>
+                Similar to our last UNION based attack let's guess how many columns there are. And I guess they learned from last time not to show the errors so now we have to do all of this blind.
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 0,0,...
+            </div>
+            <p>
+            But this script uses GET not POST like last time, so we need to encode our request into the URL. There's a really helpful tool that helps you do this <a href="http://www.freeformatter.com/url-encoder.html">Here</a>
+            </p>
+            <p>
+                If you add columns until you stop getting "User could not be found" we find out that there are 7 columns
+            </p>
+            <div class="large-12 panel code columns">
+                __________________________________________<br/>
+                | ??? | ??? | ??? | ??? | ??? | ??? | ??? |<br/>
+                ==========================================
+            </div>
+            <p>
+                We got this with this URL
+            </p>
+            <div class="large-12 panel code columns">
+                https://glitch.is/db/injection3/vuln/lookup_user.php?id=0+UNION+SELECT+0%2C0%2C0%2C0%2C0%2C0%2C0&debug=1
+            </div>
+            <p>
+                Our query should look something like this
+            </p>
+            <div class="large-12 panel code columns">
+                SELECT * FROM ${table_prefix}users WHERE id=0 UNION SELECT 0,0,0,0,0,0,0
+            </div>
+            <p>
+                If we number our columns like last time
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,2,3,4,5,6,7
+            </div>
+            <p>
+                We get a good enough picture of the table
+            </p>
+            <div class="large-12 panel code columns">
+                ____________________________________________________________________<br/>
+                | ID | username | password? | display_name | location | ??? | email |<br/>
+                ====================================================================
+            </div>
+            <p>
+                Now we can move on to extracting something from it. If you take a look at the query in the lookup script
+            </p>
+            <div class="large-12 panel code columns">
+                $query = "SELECT * FROM ${table_prefix}users WHERE id=$id";
+            </div>
+            <p>
+                We can see that they're obfuscating the name of the table with some ${table_prefix} in front of the table name to make it harder for us.
+            </p>
+            <p>
+                What we can do is go into the <a href="http://dev.mysql.com/doc/refman/5.0/en/information-schema.html">Information Schema Tables</a> in MySQL to extract table names
+            </p>
+            <p>
+                There are a lot of ways to do this but we are going to try and document all of them
+            </p>
+            <p>
+                The first and probably the most intuitive way is to sort of 'brute force' it's placement in the information_schema.tables table.
+            </p>
+            <p>
+                By replacing the username column in our request with "table_name" and display_name with "table_schema" (for a later method)
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,table_name,3,table_schema,5,6,7 FROM information_schema.tables LIMIT 1
+            </div>
+            <p>
+                We will get the ... table, but that's not the table we are looking for. So we can iterate through these rows we get by using SQL's <a href="http://www.mysqltutorial.org/mysql-limit.aspx">LIMIT</a> clause. Note that the syntax looks like the following
+            </p>
+            <div class="large-12 panel code columns">
+                LIMIT <i>offset, rows</i>
+            </div>
+            <p>
+                So this will get us the 2nd row
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,table_name,3,table_schema,5,6,7 FROM information_schema.tables LIMIT 2,1
+            </div>
+            <p>
+                With this method we can write a script that extracts all of the rows so we can search for our desired table.
+            </p>
+            <p>
+            We can make and educated guess that this table will be the last row in the table so we can extract it with the <a href="http://www.w3schools.com/sql/sql_func_last.asp">LAST()</a> function.
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,LAST(table_name),3,LAST(table_schema),5,6,7 FROM information_schema.tables
+            </div>
+            <p>
+                If this on the other hand does not give us our desired table we can use the table schema because chances are the table we're looking for has a unique table schema
+            </p>
+            <p>
+                We can use the <a href="http://www.bitbybit.dk/carsten/blog/?p=201">DATABASE()</a> information function to get the name of the currently selected database which we can use as follows
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,table_name,3,table_schema,5,6,7 FROM information_schema.tables WHERE table_schema=database() LIMIT 1
+            </div>
+            <p>
+                This only works if our target database has a single table. We're just selecting all of the tables that belong to our currently selected database
+            </p>
+            <p>
+                Now we should know that the table name is "super_secret_users". Let's try and get the Admin's password
+            </p>
+            <p>
+                We should just be able to select the password from the users table now like so
+            </p>
+            <div class="large-12 panel code columns">
+                0 UNION SELECT 1,username,3,password,5,6,7 FROM super_secret_users LIMIT 1
+            </div>
+            <p>
+                This should return the following
+            </p>
+            <div class="large-12 panel code columns">
+                id: 0 UNION SELECT 1,username,3,password,5,6,7 FROM super_secret_users LIMIT 1<br/>
+                User info for admin<br/>
+                Display name: not_the_flag_super_secret_admin_password<br/>
+                Location: 5<br/>
+                E-mail: 7
+            </div>
+            <p>
+                But this only works if our target is the first row in the table. What if our user was hidden with thousands of other users?
+            </p>
+            <p>
+                You would need to make a script that would extract all of the users info by using the LIMIT offset,row clause and then search through them when you've retrieved all of them.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Fix</h2>
+                <p>
+                    Pfft.. How am I suppose to know?! Procedures or some'?
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="secure" class="glowbutt large prefix radius button">
+                Secure Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="foot center-container">
+        <div class="center">
+            <div class="row">
+                <small>Copyright © 2014 The Glitch Network</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/vendor/jquery.js"></script>
+    <script src="../js/foundation.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>

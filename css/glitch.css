@@ -1,0 +1,35 @@
+body
+{
+    color: #24FF00;
+    background: #111111;
+    font-family: 'Audiowide', cursive;
+    overflow: hidden;
+}
+
+.center-container
+{
+    height: 100%;
+    display: flex;
+    flex-flow: row;
+    align-self: center;
+}
+
+.center
+{
+    flex:1;
+    display: flex;
+    flex-flow: column;
+    align-self: center;
+    text-align: center !important; 
+}
+
+h1
+{
+    font-size: 800%;
+    text-shadow: 0 0 10px #24FF00;
+}
+
+h3
+{
+    text-shadow: 0 0 8px #24FF00;
+}

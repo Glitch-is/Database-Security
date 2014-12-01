@@ -1,0 +1,217 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Injection 1</title>
+    <link rel="stylesheet" href="../css/foundation.css" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/animate.css">
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.css" />
+    <link rel="stylesheet" href="../css/foundation-icons/foundation-icons.ttf" />
+    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:900' rel='stylesheet' type='text/css'>
+    <script src="../js/vendor/modernizr.js"></script>
+  </head>
+  <body>
+
+    <div class="row">
+        <div style="padding:4rem;" class="large-10 large-centered columns">
+            <center>
+                <h1 class="glow">Injection 1</h1>
+            </center>
+            <hr/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="vuln" class="glowbutt large prefix radius button">
+                Vulnerable Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div  class="large-10 large-centered columns">
+            <center>
+                <h2>Description</h2>
+                <p>
+                    The example above is a login page, and luckily we are provided a PHP login script. After inspecting the login script we can see that they don't sanitize the user input at all and that they say that you're logged in if the query returns exactly one row. And what do you know? We can enable debugging as well!</p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Problem</h2>
+            </center>
+
+            <p>
+            You could just start injecting SQL on to the login page, but I prefer using some tool that allows me to send more controlled POST requests. I use the chrome extension <a href="https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en">POSTMan</a>.
+            </p>
+
+            <p>
+            By setting DEBUG to 1 we can see our requests and any errors when they occur in the database. We don't know any users on the system so we need to find a way to make the query get all the users in the database and we do that with setting username as the following
+            </p>
+            <div class="large-12 panel code columns">
+                ' OR '' = '
+            </div>
+
+            <p> This will make the SQL query look like the following.</p>
+            <div class="large-12 panel code columns">
+                SELECT * FROM users WHERE username='' OR '' = '' AND password=''
+            </div>
+            <p>This will return all the users in the database since '' = '' will always be true</p>
+            <p>
+            Now we need to figure out how to get passed the password check and we do that with essentially the same method.
+            </p>
+            <div class="large-12 panel code columns">
+                ' OR '' LIKE '
+            </div>
+
+            <p>
+            If you try this out you will see that you won't get any errors but you won't get the flag either, because the script only lets us be logged in if the query results in one row, so we can fix that by modifying our password with the following
+            </p>
+            <div class="large-12 panel code columns">
+                ' OR '' LIKE '' LIMIT 1; #
+            </div>
+
+            <p>
+            Now we make sure we only get one row and we comment out the remaining tick with "#".
+            The query that we end up with looks like this
+            </p>
+            <div class="large-12 panel code columns">
+                SELECT * FROM users WHERE username='' OR '' LIKE '' AND password='' OR '' LIKE '' LIMIT 1; #'
+            </div>
+
+            <p>
+            And what do you know? <b>WE'RE IN!</b>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Fix</h2>
+                <p>
+                    There are very simple ways to fix this in PHP, but this project will not cover any methods to sanitize user inputs through PHP or the like. We will strictly go over how to make your database secure so that any web developer doesn't have to think about securing your database.
+                </p>
+                <p>
+                    To properly secure this database we need to create a new user and a procedure that does all the interacting with the tables.
+                </p>
+                <p>
+                    One of the biggest mistake you can make when you're working with databases is running everything under root or a privileged user. You should awlays create new users for every project and even multiple ones to partition your project properly.
+                </p>
+                <p>
+                    For example let's say you're creating a website that will have two different type of users like a teacher and a student. Then you would create two different users in the database where the teacher user has INSERT privileges to the 'grades' table but the student user only has SELECT privileges.
+                </p>
+                <p>
+                    When you have proper privileges set on your database users you can then stop further exploitation by using procedures.
+                </p>
+                <p>
+                    Let's start by creating the procedure
+                </p>
+                <div class="large-12 panel code columns">
+                    DELIMITER $<br/>
+                    CREATE PROCEDURE login(user VARCHAR(75), pass VARCHAR(75))<br/>
+                        &nbsp;&nbsp;BEGIN<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;SELECT * FROM users WHERE username = user AND password = pass;<br/>
+                        &nbsp;&nbsp;END $<br/>
+                    DELIMITER ;
+                </div>
+                <p>
+                    Now we create a new user
+                </p>
+                <div class="large-12 panel code columns">
+                    CREATE USER 'sql1_secure'@'localhost' IDENTIFIED BY 'sql1_secure';
+                </div>
+                <p>
+                    And grant him privileges to use the login procedure
+                </p>
+                <div class="large-12 panel code columns">
+                    GRANT EXECUTE ON PROCEDURE sql1.login TO 'sql1_secure'@'localhost';
+                </div>
+                <p>
+                    Even with this setup we could easily bypass this procedure if we knew anything about the data that was being stored in the table like so
+                </p>
+                <div class="large-12 panel code columns">
+                    CALL login('', ''); SELECT "admin", "123"; #)
+                </div>
+                <p>
+                    We can make sure that the user can't interact with the query we use to extract the user details by assigning the data to variables that are then passed as parameters to the login procedure.
+                </p>
+                <div class="large-12 panel code columns">
+                    SET @user = "username";<br/>
+                    SET @pass = "password";
+                </div>
+                <div class="large-12 panel code columns">
+                    CALL login(@user, @pass);
+                </div>
+                <p>
+                    To stop further potential dangers we can sanitize the user's input with MySQL's <a href="http://dev.mysql.com/doc/refman/5.1/en/mysql-real-escape-string.html">mysql_real_escape_string()</a> function as we assign them into our variables
+                </p>
+                <p>
+                    It's best to allow your MySQL bindings for the language of your choice take care of this to minimize the risk of yet another security breach.
+                </p>
+                <p>
+                    But if you do not define the correct <a href="http://dev.mysql.com/doc/refman/5.1/en/mysql-set-character-set.html">character set</a> before using this function it could be rendered useless.
+                </p>
+                <p>
+                    In our examples we are using MySQLi in PHP, so we would call <a href="http://dev.mysql.com/doc/refman/5.1/en/mysql-real-escape-string.html">mysql_real_escape_string()</a> like this
+                </p>
+                <div class="large-12 panel code columns">
+                    $mysqli->query("SET @user = " . "'" . $mysqli->real_escape_string($username) . "'");
+                </div>
+                <p>
+                    What this is doing is it's calling MySQL's function we mentioned and it inserts a backslash (\) infront of all characters that might be evaluated by MySQL such as \, ', ", NUL (ASCII 0), \n and \r.
+                </p>
+                <p>
+                    If you're using another language the principal remains the same and your MySQL bindings most likely have some way to interface with this function.
+                </p>
+                <p>
+                    Now our login page should be secure. Try applying the method we used to inject the previous login page on this new and secure page
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="secure" class="glowbutt large prefix radius button">
+                Secure Login Page
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Review</h2>
+                <h5 style="text-align: left;">Why is it Secure?</h5>
+                <ol>
+                    <li>Our database user doesn't have any privileges for our table</li>
+                    <li>We used a procedure that the user uses to interact with the table</li>
+                    <li>We used variables to initially get the user's input into the database</li>
+                    <li>At no point does the user interact with the final extraction of the user details</li>
+                    <li>We escape all character sequences entered by the user for extra security</li>
+                </ol>
+
+    <div class="foot center-container">
+        <div class="center">
+            <div class="row">
+                <small>Copyright © 2014 The Glitch Network</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/vendor/jquery.js"></script>
+    <script src="../js/foundation.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>
