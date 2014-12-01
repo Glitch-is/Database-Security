@@ -1,4 +1,8 @@
 <?php
+ini_set('display_startup_errors',1);
+ini_set('display_errors',1);
+error_reporting(-1);
+
 include($_SERVER['DOCUMENT_ROOT'] . "/db/include/head.html");
 $con = mysqli_connect("localhost", "sql1_secure", "sql1_secure", "sql1");
 $username = $_POST["username"];
