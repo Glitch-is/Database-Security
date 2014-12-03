@@ -1,16 +1,12 @@
 <?php
-ini_set('display_startup_errors',1);
-ini_set('display_errors',1);
-error_reporting(-1);
-
 include($_SERVER['DOCUMENT_ROOT'] . "/db/include/head.html");
 $con = mysqli_connect("localhost", "sql1_secure", "sql1_secure", "sql1");
 $username = $_POST["username"];
 $password = $_POST["password"];
 $debug = $_POST["debug"];
 
-$con->query("SET @user = " . "'" . $mysqli->real_escape_string($username) . "'");
-$con->query("SET @pass = " . "'" . $mysqli->real_escape_string($password) . "'");
+$con->query("SET @user = " . "'" . $con->real_escape_string($username) . "'");
+$con->query("SET @pass = " . "'" . $con->real_escape_string($password) . "'");
 
 $result = $con->query("CALL login(@user, @pass)");
 

