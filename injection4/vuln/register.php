@@ -1,5 +1,4 @@
 <?php
-include "config.php";
 $con = mysqli_connect("localhost", "sql4", "sql4", "sql4");
 $username = $_POST["username"];
 $query = "SELECT * FROM users WHERE username='$username'";

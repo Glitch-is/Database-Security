@@ -5,7 +5,7 @@ start = time.time()
 
 alphabet = "abcdefghijklmnopqrstuvwxyz"
 password = ""
-url = 'http://web2014.picoctf.com/injection4/register.php'
+url = 'https://glitch.is/db/injection4/vuln/register.php'
 finished = False
 
 while True:

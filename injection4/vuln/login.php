@@ -9,7 +9,8 @@ $result = mysqli_query($con, $query);
 if (mysqli_num_rows($result) === 1) {
   $row = mysqli_fetch_array($result);
   echo "<h1>Logged in!</h1>";
-  echo "<p>Your flag is: $FLAG</p>";
+  echo "<p>You have completed your H4xx0r training!</p>";
+  echo "<p>Go out there and have fun (don't though...)</p>";
 } else {
   echo "<h1>Login failed.</h1>";
 }

@@ -138,8 +138,61 @@
             <center>
                 <h2>Fix</h2>
                 <p>
-                    Pfft.. How am I suppose to know?! Procedures or some'?
+                    Similar to the last fix we need to make sure the user doesn't interact with the query that we use to extract the user info. So we set the user input into variables in MySQL and escape the input for extra security, but escaping the input might not be necessary since the database user doesn't have any privileges.
                 </p>
+                <p>
+                    Let's start by creating our procedure since there's no way we can get any unexpected output from it, if we don't mix the user input with our query of course
+                </p>
+                <div class="large-12 panel code columns">
+                    DELIMITER $<br/>
+                    CREATE PROCEDURE login(user VARCHAR(75))<br/>
+                        &nbsp;&nbsp;BEGIN<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;SELECT * FROM users WHERE username = user;<br/>
+                        &nbsp;&nbsp;END $<br/>
+                    DELIMITER ;
+                </div>
+                <p>
+                    And of course create the user and give him execure privileges to the login procedure
+                </p>
+                <div class="large-12 panel code columns">
+                    CREATE USER 'sql2_secure'@'localhost' IDENTIFIED BY 'sql2_secure';
+                    GRANT EXECUTE ON PROCEDURE sql2.login TO 'sql2_secure'@'localhost';
+                </div>
+                <p>
+                    And we need to make sure that the user can't interact with the query we use to extract the user details by assigning the data to variables that are then passed as parameters to the login procedure.
+                </p>
+                <div class="large-12 panel code columns">
+                    SET @user = "username";<br/>
+                    SET @pass = "password";
+                </div>
+                <div class="large-12 panel code columns">
+                    CALL login(@user, @pass);
+                </div>
+                <p>
+                    It's always a good practice to sanitze all user inputs no matter what
+                </p>
+                <div class="large-12 panel code columns">
+                    $mysqli->query("SET @user = " . "'" . $mysqli->real_escape_string($username) . "'");
+                </div>
+                <p>
+                    Now our login page should be secure,
+                </p>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Review</h2>
+                <h5 style="text-align: left;">Why is it Secure?</h5>
+                <ol>
+                    <li>Our database user doesn't have any privileges for our table</li>
+                    <li>We used a procedure that the user uses to interact with the table</li>
+                    <li>We used variables to initially get the user's input into the database</li>
+                    <li>At no point does the user interact with the final extraction of the user details</li>
+                    <li>We escape all character sequences entered by the user for extra security</li>
+                </ol>
             </center>
         </div>
     </div>
