@@ -1,11 +1,14 @@
 <?php
-include("head.html");
-$con = mysqli_connect("localhost", "sql2", "sql2", "sql2");
+include($_SERVER['DOCUMENT_ROOT'] . "/db/include/head.html");
+$con = mysqli_connect("localhost", "sql2_secure", "sql2_secure", "sql2");
 $username = $_POST["username"];
 $password = $_POST["password"];
 $debug = $_POST["debug"];
-$query = "SELECT * FROM users WHERE username='$username'";
-$result = mysqli_query($con, $query);
+
+$con->query("SET @user = " . "'" . $con->real_escape_string($username) . "'");
+$con->query("SET @pass = " . "'" . $con->real_escape_string($password) . "'");
+
+$result = $con->query("CALL login(@user)");
 
 if (intval($debug)) {
   echo "<div class='large-12 panel code columns'>";
@@ -27,17 +30,12 @@ if (mysqli_num_rows($result) === 1) {
   if ($row["password"] === $password) {
     $logged_in = true;
     echo "<h1>Logged in!</h1>";
-    echo "<div class='large-12 panel code columns'><pre>User level: ", $row["user_level"],  "</pre></div>";
-    if ($row["user_level"] >= 1337) {
-      echo "<p>W00t W00t, You're in!!!1</p>";
-    } else {
-      echo "<p>Only user levels 1337 or above can see the flag.</p>";
-    }
+    echo "<h3>This is emberassing... Please contact us and tell us how you did it</h3>";
   }
 }
 
 if (!$logged_in) {
   echo "<h1>Login failed.</h1>";
 }
-include("tail.html");
+include($_SERVER['DOCUMENT_ROOT'] . "/db/include/tail.html");
 ?>

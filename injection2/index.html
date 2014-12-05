@@ -155,7 +155,7 @@
                     And of course create the user and give him execure privileges to the login procedure
                 </p>
                 <div class="large-12 panel code columns">
-                    CREATE USER 'sql2_secure'@'localhost' IDENTIFIED BY 'sql2_secure';
+                    CREATE USER 'sql2_secure'@'localhost' IDENTIFIED BY 'sql2_secure';<br/>
                     GRANT EXECUTE ON PROCEDURE sql2.login TO 'sql2_secure'@'localhost';
                 </div>
                 <p>
@@ -175,7 +175,7 @@
                     $mysqli->query("SET @user = " . "'" . $mysqli->real_escape_string($username) . "'");
                 </div>
                 <p>
-                    Now our login page should be secure,
+                    Now our login page should be rock solid.
                 </p>
             </center>
         </div>

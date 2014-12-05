@@ -156,8 +156,41 @@
             <center>
                 <h2>Fix</h2>
                 <p>
-                    Pfft.. How am I suppose to know?! Procedures or some'?
+                    Our vulnerability lies in the registration, so let's use what we learned in the previous fixes to patch this mess up.
                 </p>
+                <p>
+                    Starting with a procedure that checks wheter a user is registered or not.
+                </p>
+                <div class="large-12 panel code columns">
+                    DELIMITER $<br/>
+                    CREATE PROCEDURE registered(user VARCHAR(75))<br/>
+                        &nbsp;&nbsp;BEGIN<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;SELECT username FROM users WHERE username = user;<br/>
+                        &nbsp;&nbsp;END $<br/>
+                    DELIMITER ;
+                </div>
+                <p>
+                    And now to create the dedicated user and give him execution permission to the procedure
+                </p>
+                <div class="large-12 panel code columns">
+                    CREATE USER 'sql4_secure'@'localhost' IDENTIFIED BY 'sql4_secure';<br/>
+                    GRANT EXECUTE ON PROCEDURE sql4.registered TO 'sql4_secure'@'localhost';
+                </div>
+                <p>
+                    And of course we can't forget to seperate the user input from out query
+                </p>
+                <div class="large-12 panel code columns">
+                    SET @username = "username";<br/>
+                </div>
+                <div class="large-12 panel code columns">
+                    CALL registered(@username);
+                </div>
+                <p>
+                    And sanitze it, just as that final nail in the coffin.
+                </p>
+                <div class="large-12 panel code columns">
+                    $mysqli->query("SET @username = " . "'" . $mysqli->real_escape_string($username) . "'");
+                </div>
             </center>
         </div>
     </div>
@@ -169,6 +202,34 @@
             </a>
         </div>
     </div>
+
+    <div class="row">
+        <div class="large-10 large-centered columns">
+            <center>
+                <h2>Closing Statments</h2>
+                <p>
+                    This concludes The Bobby Tables Project, We hope you've learned something and apply it appropriately in your future database projects.
+                </p>
+                <p>
+                    If you keep the following rules in mind and apply them correctly you should never have to worry about SQL Injections ever again!
+                </p>
+                <ol>
+                    <li>Your database user doesn't have any privileges for any table</li>
+                    <li>Use a procedure that the user uses to interact with the table</li>
+                    <li>Use variables to initially get the user's input into the database</li>
+                    <li>At no point should the user interact with the extraction query of any data</li>
+                    <li>Escape all character sequences entered by the user</li>
+                </ol>
+                <p>
+                    This documentation is in no way guaranteed to secure your database since the dynamic nature of the security environment, just make sure to keep all your software up to date and keep your eyes open for best practices for your programming languages or tools.
+                </p>
+                <h2>
+                    Stay Safe Out There!
+                </h2>
+            </center>
+        </div>
+    </div>
+
 
     <div class="foot center-container">
         <div class="center">

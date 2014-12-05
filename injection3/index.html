@@ -194,7 +194,43 @@
             <center>
                 <h2>Fix</h2>
                 <p>
-                    Pfft.. How am I suppose to know?! Procedures or some'?
+                    The fix to this problem is really simple. All we need to do is add some quotes around the ID and then we should be done, but we're actually gonna go and take all the precautions we took in the previous fixes, so let's go and make this database bullet proof
+                </p>
+                <p>
+                    First let's create our procedure that looks up the user info
+                </p>
+                <div class="large-12 panel code columns">
+                    DELIMITER $<br/>
+                    CREATE PROCEDURE lookup(id INT)<br/>
+                        &nbsp;&nbsp;BEGIN<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;SELECT * FROM super_secret_users WHERE ID = id;<br/>
+                        &nbsp;&nbsp;END $<br/>
+                    DELIMITER ;
+                </div>
+                <p>
+                    And to create our user and give him execute privileges to the procedure
+                </p>
+                <div class="large-12 panel code columns">
+                    CREATE USER 'sql3_secure'@'localhost' IDENTIFIED BY 'sql3_secure';<br/>
+                    GRANT EXECUTE ON PROCEDURE sql3.lookup TO 'sql3_secure'@'localhost';
+                </div>
+                <p>
+                    Now to make sure the user doesn't interact with our final query
+                </p>
+                <div class="large-12 panel code columns">
+                    SET @id = "1";<br/>
+                </div>
+                <div class="large-12 panel code columns">
+                    CALL lookup(@id);
+                </div>
+                <p>
+                    And for extra security sanitize the user input
+                </p>
+                <div class="large-12 panel code columns">
+                    $mysqli->query("SET @id = " . "'" . $mysqli->real_escape_string($id) . "'");
+                </div>
+                <p>
+                    Now our database is more than safe, Try it out!
                 </p>
             </center>
         </div>
